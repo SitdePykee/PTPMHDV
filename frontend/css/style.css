@@ -1,0 +1,210 @@
+/* Reset CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Arial", sans-serif;
+}
+
+body {
+    background: linear-gradient(to right, #83a4d4, #b6fbff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    text-align: center;
+    padding: 25px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    max-width: 450px;
+}
+
+h1 {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 24px;
+}
+
+.grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.card {
+    background: #007BFF;
+    color: white;
+    text-decoration: none;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    transition: 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.card:hover {
+    background: #0056b3;
+    transform: scale(1.05);
+}
+
+.list {
+    list-style: none;
+    margin-top: 15px;
+    padding: 0;
+}
+
+.item {
+    background: #ffffff;
+    padding: 12px;
+    margin: 6px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn {
+    background: #28a745;
+    color: white;
+    padding: 12px;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    margin-top: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn:hover {
+    background: #218838;
+    transform: scale(1.05);
+}
+
+.back {
+    display: block;
+    margin-top: 15px;
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+}
+
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    margin-top: 15px;
+    gap: 10px;
+}
+
+.tab-btn {
+    background: #007BFF;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.tab-btn:hover {
+    background: #0056b3;
+    transform: scale(1.05);
+}
+
+.input-box {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: 2px solid #007BFF;
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-box:focus {
+    border-color: #0056b3;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.tab-btn.active {
+    background: #28a745;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Container chính */
+#excel-container {
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    text-align: center;
+}
+
+/* Tiêu đề */
+#excel-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #007BFF;
+    margin-bottom: 15px;
+}
+
+/* Danh sách dữ liệu Excel */
+#excel-data {
+    list-style: none;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* Mỗi dòng dữ liệu Excel */
+.excel-item {
+    background: #f8f9fa;
+    padding: 12px;
+    margin: 6px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+/* Hiệu ứng hover */
+.excel-item:hover {
+    background: #e9ecef;
+    transform: scale(1.02);
+}
+
+/* Icon */
+.excel-item::before {
+    content: "📄";
+    margin-right: 10px;
+}
+
+/* Thanh cuộn */
+#excel-data::-webkit-scrollbar {
+    width: 6px;
+}
+
+#excel-data::-webkit-scrollbar-thumb {
+    background: #007BFF;
+    border-radius: 10px;
+}
+
+#excel-data::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}

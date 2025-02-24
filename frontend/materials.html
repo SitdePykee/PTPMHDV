@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý nguyên vật liệu</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Nhập đường dẫn file Excel trên máy chủ</h2>
+        <input type="text" id="excel_file_path" class="input-box" placeholder="Nhập đường dẫn file trên máy chủ (VD: C:\Data\materials.xlsx)">
+        <input type="text" id="remote_server" class="input-box" placeholder="Nhập địa chỉ máy chủ DCOM (tùy chọn)">
+        <button class="btn" onclick="requestExcelData()">📤 Đọc dữ liệu từ Excel</button>
+        <div id="excel-container">
+            <h2 id="excel-title">📊 Dữ liệu từ Excel</h2>
+            <ul id="excel-data"></ul>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'add-material')">➕ Thêm Nguyên Vật Liệu</button>
+            <button class="tab-btn" onclick="openTab(event, 'view-materials')">📋 Danh Sách Nguyên Vật Liệu</button>
+            <button class="tab-btn" onclick="openTab(event, 'add-transaction')">➕ Thêm Giao Dịch Kho</button>
+            <button class="tab-btn" onclick="openTab(event, 'view-transactions')">📋 Danh Sách Giao Dịch Kho</button>
+        </div>
+
+        <div id="add-material" class="tab-content active">
+            <h2>Thêm Nguyên Vật Liệu</h2>
+            <input class="input-box" type="text" id="material_name" placeholder="Tên nguyên vật liệu">
+            <input class="input-box" type="number" id="material_quantity" placeholder="Số lượng">
+            <input class="input-box" type="number" id="supplier_id" placeholder="ID Nhà cung cấp">
+            <button class="btn" onclick="addMaterial()">➕ Thêm</button>
+        </div>
+
+        <div id="view-materials" class="tab-content">
+            <h2>Danh Sách Nguyên Vật Liệu</h2>
+            <button class="btn" onclick="fetchMaterials()">📋 Xem danh sách</button>
+            <ul id="material-list" class="list"></ul>
+        </div>
+
+        <div id="add-transaction" class="tab-content">
+            <h2>Thêm Giao Dịch Kho</h2>
+            <input type="number" id="transaction_material_id" placeholder="ID Nguyên liệu">
+            <select id="transaction_type">
+                <option value="Nhập">Nhập</option>
+                <option value="Xuất">Xuất</option>
+            </select>
+            <input type="number" id="transaction_quantity" placeholder="Số lượng">
+            <input type="date" id="transaction_date">
+            <button class="btn" onclick="addStockTransaction()">➕ Thêm Giao Dịch</button>
+        </div>
+
+        <div id="view-transactions" class="tab-content">
+            <h2>Danh Sách Giao Dịch Kho</h2>
+            <button class="btn" onclick="fetchStockTransactions()">📋 Xem Giao Dịch</button>
+            <ul id="stock-list" class="list"></ul>
+        </div>
+
+        <a href="index.html" class="back">⬅ Về trang chủ</a>
+    </div>
+
+    <script>
+        function openTab(evt, tabId) {
+            let tabContents = document.querySelectorAll(".tab-content");
+            let tabButtons = document.querySelectorAll(".tab-btn");
+
+            tabContents.forEach(tab => tab.style.display = "none");
+            tabButtons.forEach(btn => btn.classList.remove("active"));
+
+            document.getElementById(tabId).style.display = "block";
+            evt.currentTarget.classList.add("active");
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            let tabContents = document.querySelectorAll(".tab-content");
+            tabContents.forEach(tab => tab.style.display = "none");
+            document.getElementById("add-material").style.display = "block";
+        });
+    </script>
+    <script src="js/main.js"></script>
+</body>
+</html>
