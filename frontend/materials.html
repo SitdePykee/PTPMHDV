@@ -5,26 +5,153 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý nguyên vật liệu</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 90%;
+    max-width: 800px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.input-box {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+button.btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    transition: background 0.3s, transform 0.2s;
+}
+
+button.btn:hover {
+    background: #0056b3;
+    transform: scale(1.05);
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.3s;
+    flex: 1;
+    text-align: center;
+}
+
+.tab-btn.active {
+    border-bottom: 3px solid #007bff;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.tab-content {
+    display: none;
+    width: 100%;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.list li {
+    background: #e9ecef;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.back {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.back:hover {
+    text-decoration: underline;
+}
+</style>
 </head>
 <body>
     <div class="container">
-        <h2>Nhập đường dẫn file Excel trên máy chủ</h2>
-        <input type="text" id="excel_file_path" class="input-box" placeholder="Nhập đường dẫn file trên máy chủ (VD: C:\Data\materials.xlsx)">
-        <input type="text" id="remote_server" class="input-box" placeholder="Nhập địa chỉ máy chủ DCOM (tùy chọn)">
-        <button class="btn" onclick="requestExcelData()">📤 Đọc dữ liệu từ Excel</button>
-        <div id="excel-container">
-            <h2 id="excel-title">📊 Dữ liệu từ Excel</h2>
-            <ul id="excel-data"></ul>
-        </div>
-
         <div class="tabs">
-            <button class="tab-btn active" onclick="openTab(event, 'add-material')">➕ Thêm Nguyên Vật Liệu</button>
+            <button class="tab-btn active" onclick="openTab(event, 'excel')">📤 Dữ liệu từ excel</button>
+            <button class="tab-btn" onclick="openTab(event, 'add-material')">➕ Thêm Nguyên Vật Liệu</button>
             <button class="tab-btn" onclick="openTab(event, 'view-materials')">📋 Danh Sách Nguyên Vật Liệu</button>
             <button class="tab-btn" onclick="openTab(event, 'add-transaction')">➕ Thêm Giao Dịch Kho</button>
             <button class="tab-btn" onclick="openTab(event, 'view-transactions')">📋 Danh Sách Giao Dịch Kho</button>
         </div>
 
-        <div id="add-material" class="tab-content active">
+        <div id="excel" class="tab-content active">
+            <h2>Nhập đường dẫn file Excel trên máy chủ</h2>
+            <input type="text" id="excel_file_path" class="input-box" placeholder="Nhập đường dẫn file trên máy chủ (VD: C:\Data\materials.xlsx)">
+            <input type="text" id="remote_server" class="input-box" placeholder="Nhập địa chỉ máy chủ DCOM (tùy chọn)">
+            <button class="btn" onclick="requestExcelData()">📤 Đọc dữ liệu từ Excel</button>
+            <div id="excel-container">
+                <h2 id="excel-title">📊 Dữ liệu từ Excel</h2>
+                <div id="excel-data"></div>
+                <button class="btn" id="save-button" onclick="saveExcelData()" style="display: none;">💾 Lưu dữ liệu</button>
+            </div>
+        </div>
+
+        <div id="add-material" class="tab-content">
             <h2>Thêm Nguyên Vật Liệu</h2>
             <input class="input-box" type="text" id="material_name" placeholder="Tên nguyên vật liệu">
             <input class="input-box" type="number" id="material_quantity" placeholder="Số lượng">
@@ -74,7 +201,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             let tabContents = document.querySelectorAll(".tab-content");
             tabContents.forEach(tab => tab.style.display = "none");
-            document.getElementById("add-material").style.display = "block";
+            document.getElementById("excel").style.display = "block";
         });
     </script>
     <script src="js/main.js"></script>

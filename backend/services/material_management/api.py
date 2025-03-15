@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from backend.common.database import db
 from backend.services.material_management.models import Material, StockTransaction
-from backend.services.material_management.dcom import read_excel_data
+from backend.services.material_management.dcom import read_excel_data, update_excel_data
 import os
 
 material_management_bp = Blueprint('material_management', __name__)
@@ -34,28 +34,6 @@ def add_stock_transaction():
     db.session.commit()
     return jsonify({'message': 'Giao dịch kho đã được ghi nhận'}), 201
 
-@material_management_bp.route('/read_excel_data', methods=['POST'])
-def read_excel_dcom():
-    """ API nhận đường dẫn file Excel trên máy chủ và đọc dữ liệu qua DCOM """
-    try:
-        data = request.get_json()
-        file_path = data.get("file_path")
-        remote_server = request.args.get("remote_server")
-
-        if not file_path:
-            return jsonify({"error": "Không tìm thấy đường dẫn file Excel"}), 400
-
-        # Đọc dữ liệu từ file Excel qua DCOM
-        excel_data = read_excel_data(file_path, remote_server=remote_server)
-
-        if "error" in excel_data:
-            return jsonify({"error": excel_data["error"]}), 500
-
-        return jsonify({"message": "Dữ liệu đọc thành công!", "data": excel_data}), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 @material_management_bp.route('/fetch_excel_data', methods=['POST'])
 def fetch_excel_data():
     """ API trên server để gọi đến máy chủ DCOM và đọc dữ liệu Excel """
@@ -77,3 +55,56 @@ def fetch_excel_data():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@material_management_bp.route('/update_excel_data', methods=['POST'])
+def update_excel():
+    """API cập nhật dữ liệu Excel trên máy chủ DCOM và đồng bộ với CSDL"""
+    try:
+        data = request.get_json()
+        file_path = data.get("file_path")
+        remote_server = data.get("remote_server")
+        updated_data = data.get("updated_data")
+
+        if not file_path or not updated_data:
+            return jsonify({"error": "⚠ Thiếu đường dẫn file hoặc dữ liệu cập nhật!"}), 400
+
+        # Cập nhật file Excel trên máy chủ DCOM
+        result = update_excel_data(file_path, updated_data, remote_server)
+        if "error" in result:
+            return jsonify({"error": result["error"]}), 500
+
+        # Đọc lại dữ liệu mới từ file Excel
+        new_excel_data = read_excel_data(file_path, remote_server=remote_server)
+        if "error" in new_excel_data:
+            return jsonify({"error": new_excel_data["error"]}), 500
+
+        for row in new_excel_data:
+            name = row.get("name")
+            quantity = row.get("quantity")
+            supplier_id = row.get("supplier_id")
+
+            if not name or supplier_id is None:
+                return jsonify({
+                    "error": "❌ Lỗi: File Excel thiếu thông tin quan trọng (name, supplier_id)!"
+                }), 400
+
+            # Tìm dữ liệu trong CSDL để cập nhật
+            material = Material.query.filter_by(name=name, supplier_id=supplier_id).first()
+
+            if material:
+                material.quantity = quantity
+            else:
+                return jsonify({
+                    "error": f"❌ Không tìm thấy dữ liệu: {name} (supplier_id={supplier_id}) trong CSDL!"
+                }), 404  # Trả về lỗi nếu không có trong CSDL
+
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "✅ Dữ liệu đã được cập nhật thành công!"
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"❌ Lỗi khi cập nhật dữ liệu: {str(e)}"}), 500

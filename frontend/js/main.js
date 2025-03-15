@@ -114,15 +114,23 @@ function requestExcelData() {
         let list = document.getElementById("excel-data");
         list.innerHTML = "";
         if (data.data) {
-            data.data.forEach(material => {
-                let item = document.createElement("li");
-                item.className = "item";
-                item.innerHTML = `📄 ${material.name} - Số lượng: ${material.quantity} | Nhà cung cấp: ${material.supplier_id}`;
-                list.appendChild(item);
+            data.data.forEach((material, index) => {
+                let row = document.createElement("div");
+                row.className = "excel-row";
+                row.innerHTML = `
+                    <input type="text" class="excel-input" value="${material.name}" data-index="${index}" data-field="name">
+                    <input type="number" class="excel-input" value="${material.quantity}" data-index="${index}" data-field="quantity">
+                    <input type="text" class="excel-input" value="${material.supplier_id}" data-index="${index}" data-field="supplier_id">
+                `;
+                list.appendChild(row);
             });
+
+            // Hiển thị nút lưu dữ liệu
+            document.getElementById("save-button").style.display = "block";
+
             alert("✅ Dữ liệu đã được tải từ máy chủ DCOM!");
         } else {
-            list.innerHTML = `<li class='item'>❌ ${data.error || "Không thể đọc dữ liệu từ file Excel"}</li>`;
+            list.innerHTML = `<div class="error-msg">❌ ${data.error || "Không thể đọc dữ liệu từ file Excel"}</div>`;
         }
     })
     .catch(error => {
@@ -131,3 +139,43 @@ function requestExcelData() {
     });
 }
 
+function saveExcelData() {
+    let filePath = document.getElementById("excel_file_path").value.trim();
+    let remoteServer = document.getElementById("remote_server").value.trim();
+    let inputs = document.querySelectorAll(".excel-input");
+
+    let updatedData = [];
+
+    inputs.forEach(input => {
+        let index = input.getAttribute("data-index");
+        let field = input.getAttribute("data-field");
+        let materialId = input.getAttribute("data-id");
+
+        if (!updatedData[index]) {
+            updatedData[index] = { id: materialId };
+        }
+        updatedData[index][field] = input.value;
+    });
+
+    console.log("📌 Data gửi lên server:", updatedData); // Debug dữ liệu trước khi gửi
+
+    let apiUrl = "http://" + hostname + ":5000/api/material_management/update_excel_data";
+
+    fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ file_path: filePath, remote_server: remoteServer, updated_data: updatedData })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("✅ Dữ liệu Excel đã được cập nhật thành công!");
+        } else {
+            alert("❌ Lỗi khi cập nhật dữ liệu: " + data.error);
+        }
+    })
+    .catch(error => {
+        console.error("❌ Lỗi khi cập nhật dữ liệu:", error);
+        alert("❌ Lỗi khi cập nhật dữ liệu! Kiểm tra console để biết thêm chi tiết.");
+    });
+}
