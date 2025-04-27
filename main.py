@@ -9,7 +9,7 @@ from backend.services.material_management.api import material_management_bp
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)  # Cho phép CORS để API có thể gọi từ frontend
+    CORS(app, origins=["http://localhost:8000"])
 
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
         'DATABASE_URL', 'mssql+pymssql://sa:admin@localhost/production_db'

@@ -26,13 +26,6 @@ def get_material(id):
     material = Material.query.get_or_404(id)
     return jsonify({'name': material.name, 'quantity': material.quantity, 'supplier_id': material.supplier_id})
 
-@material_management_bp.route('/stock_transaction', methods=['POST'])
-def add_stock_transaction():
-    data = request.get_json()
-    transaction = StockTransaction(material_id=data['material_id'], type=data['type'], quantity=data['quantity'], date=data['date'])
-    db.session.add(transaction)
-    db.session.commit()
-    return jsonify({'message': 'Giao dịch kho đã được ghi nhận'}), 201
 
 @material_management_bp.route('/fetch_excel_data', methods=['POST'])
 def fetch_excel_data():
@@ -108,3 +101,67 @@ def update_excel():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"❌ Lỗi khi cập nhật dữ liệu: {str(e)}"}), 500
+@material_management_bp.route('/stock_transaction', methods=['GET'])
+def get_all_stock_transactions():
+    transactions = StockTransaction.query.all()
+    transaction_list = [{
+        "id": t.id,
+        "material_id": t.material_id,
+        "type": t.type,
+        "quantity": t.quantity,
+        "date": t.date.strftime('%Y-%m-%d')
+    } for t in transactions]
+    return jsonify(transaction_list), 200
+
+@material_management_bp.route('/stock_transaction/<int:id>', methods=['GET'])
+def get_stock_transaction(id):
+    transaction = StockTransaction.query.get_or_404(id)
+    return jsonify({
+        "material_id": transaction.material_id,
+        "type": transaction.type,
+        "quantity": transaction.quantity,
+        "date": transaction.date.strftime('%Y-%m-%d')
+    })
+
+@material_management_bp.route('/stock_transaction/<int:id>', methods=['PUT'])
+def update_stock_transaction(id):
+    data = request.get_json()
+    transaction = StockTransaction.query.get(id)
+
+    if not transaction:
+        return jsonify({"error": "❌ Giao dịch kho không tồn tại!"}), 404
+
+    # Cập nhật thông tin giao dịch
+    transaction.material_id = data.get('material_id', transaction.material_id)
+    transaction.type = data.get('type', transaction.type)
+    transaction.quantity = data.get('quantity', transaction.quantity)
+    transaction.date = data.get('date', transaction.date)
+
+    db.session.commit()
+
+    return jsonify({'message': '✅ Giao dịch kho đã được cập nhật!'}), 200
+
+@material_management_bp.route('/stock_transaction/<int:id>', methods=['DELETE'])
+def delete_stock_transaction(id):
+    transaction = StockTransaction.query.get(id)
+
+    if not transaction:
+        return jsonify({"error": "❌ Giao dịch kho không tồn tại!"}), 404
+
+    db.session.delete(transaction)
+    db.session.commit()
+
+    return jsonify({'message': '✅ Giao dịch kho đã được xóa!'}), 200
+
+@material_management_bp.route('/stock_transaction', methods=['POST'])
+def add_stock_transaction():
+    data = request.get_json()
+    transaction = StockTransaction(
+        material_id=data['material_id'],
+        type=data['type'],
+        quantity=data['quantity'],
+        date=data['date']
+    )
+    db.session.add(transaction)
+    db.session.commit()
+    return jsonify({'message': 'Giao dịch kho đã được ghi nhận'}), 201

@@ -1,0 +1,1062 @@
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Quản lý sản xuất</title>
+        <link rel="stylesheet" href="../styles.css">
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+    </head>
+    <body>
+        <header>
+            <h1>Quản lý sản xuất</h1>
+        </header>
+
+        <nav>
+            <ul>
+
+                <li><a href="#" id="show-nhan-vien">Nhân viên</a></li>
+                <li><a href="#" id="show-quy-trinh">Quy trình sản xuất</a></li>
+                <li><a href="#" id="show-san-pham">Sản phẩm</a></li>
+            </ul>
+        </nav>
+
+
+       <!-- Ô tìm kiếm nhân viên -->
+    <div class="search-container" id="search-nhan-vien" style="display: none;">
+      <input type="text" id="search-input-nhan-vien" placeholder="Tìm kiếm nhân viên..." oninput="searchNhanVien()">
+      <button onclick="searchNhanVien()">Tìm kiếm</button>
+    </div>
+
+    <!-- Danh sách nhân viên -->
+    <div id="nhan-vien-list" style="display: none;"></div> <!-- Danh sách tất cả nhân viên sẽ hiển thị ở đây khi không tìm kiếm -->
+      <!-- Các nhân viên sẽ được hiển thị ở đây -->
+    </div>
+
+    <!-- Kết quả tìm kiếm -->
+    <div id="search-results" style="display: none;">
+      <!-- Các kết quả tìm kiếm sẽ được hiển thị ở đây -->
+    </div>
+
+
+    <!-- Ô tìm kiếm -->
+    <div class="search-container" id="search-quy-trinh" style="display: none;">
+      <input type="text" id="search-input-Quy-Trinh" placeholder="Tìm kiếm quy trình sản xuất..." oninput="searchQuyTrinh()">
+      <button onclick="searchQuyTrinh()">Tìm kiếm</button>
+    </div>
+
+    <!-- ✅ Kết quả tìm kiếm: nên nằm ngay sau ô tìm kiếm -->
+    <div id="search-results-quy-trinh" style="display: none;">
+      <!-- Kết quả sẽ được JS đổ vào đây -->
+    </div>
+
+    <!-- Danh sách mặc định quy trình -->
+<!-- Quy trình sản xuất -->
+<div id="quy-trinh-list" style="display: none;"></div>
+
+
+
+    <div class="search-container" id="search-san-pham" style="display: none;">
+      <input type="text" id="search-input-san-pham" placeholder="Tìm kiếm sản phẩm..." oninput="searchSanPham()">
+      <button onclick="searchSanPham()">Tìm kiếm</button>
+    </div>
+
+    <!-- Danh sách sản phẩm -->
+    <div id="san-pham-list">
+      <!-- Các sản phẩm sẽ được hiển thị ở đây -->
+    </div>
+    <!-- ✅ Bọc phần sản phẩm + giỏ hàng vào 1 div -->
+<div id="san-pham-section" style="display: none;">
+  <h2>Danh sách sản phẩm</h2>
+  <table border="1">
+      <thead>
+          <tr>
+              <th>Mã sản phẩm</th>
+              <th>Tên sản phẩm</th>
+              <th>Loại sản phẩm</th>
+              <th>Thao tác</th>
+          </tr>
+      </thead>
+      <tbody id="product-table-body">
+          <!-- Dòng sản phẩm sẽ được thêm bằng JavaScript -->
+      </tbody>
+  </table>
+
+  <!-- 🛒 Icon giỏ hàng -->
+  <div id="cart-icon-container" onclick="toggleCart()" style="position: fixed; top: 20px; right: 30px; cursor: pointer; font-size: 24px;">
+      🛒 <span id="cart-count" style="background: red; color: white; padding: 2px 6px; border-radius: 10px; font-size: 14px;">0</span>
+  </div>
+
+  <!-- 📦 Popup giỏ hàng -->
+  <div id="cart-popup" style="display: none; position: fixed; top: 60px; right: 30px; width: 380px; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.2); padding: 15px; z-index: 1000;">
+      <h3 style="margin-top: 0;">🛍️ Giỏ hàng của bạn</h3>
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <thead>
+              <tr style="background-color: #f0f0f0;">
+                  <th style="padding: 5px;">Tên</th>
+                  <th style="padding: 5px;">Loại</th>
+                  <th style="padding: 5px;">SL</th>
+                  <th style="padding: 5px;">Xóa</th>
+              </tr>
+          </thead>
+          <tbody id="cart-table-body">
+              <!-- Nội dung giỏ hàng sẽ được thêm bằng JS -->
+          </tbody>
+      </table>
+  </div>
+</div>
+
+<!-- Modal hiển thị các bước của quy trình -->
+<div id="modal-buoc-quy-trinh" style="display: none; position: fixed; top: 100px; left: 50%; transform: translateX(-50%);
+  width: 600px; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.3); z-index: 999;">
+    <h3 id="modal-title">Các bước của quy trình</h3>
+    <ul id="ds-buoc" style="padding-left: 20px;"></ul>
+    <button onclick="dongModal()" style="margin-top: 10px;">Đóng</button>
+</div>
+
+    <div id="phan-cong-form" class="phan-cong-container">
+    <h2>Phân công nhân viên</h2>
+    <div class="form-group">
+        <label for="nhanvien">Mã nhân viên:</label>
+        <input type="number" id="nhanvien" required>
+    </div>
+    <div class="form-group">
+        <label for="quytrinh">Mã quy trình:</label>
+        <input type="number" id="quytrinh" required>
+    </div>
+    <div class="form-group">
+        <label for="vaitro">Vai trò:</label>
+        <input type="text" id="vaitro" placeholder="VD: Công nhân, Kiểm định..." value="Công nhân">
+    </div>
+    <button onclick="phanCong()">✅ Phân công</button>
+
+        <div id="phan-cong-danh-sach" class="phan-cong-list">
+    <h2>📋 Danh sách phân công</h2>
+    <ul id="ds-phan-cong"></ul>
+    <button onclick="loadPhanCong()">🔄 Tải lại</button>
+</div>
+
+
+        <style>
+            /* Reset mặc định */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Font và màu nền chung */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    padding: 20px;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Header */
+header {
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+}
+
+/* Menu điều hướng */
+nav {
+    background-color: white;
+    display: flex;
+    justify-content: center;
+}
+
+nav ul {
+    list-style-type: none;
+    display: flex;
+    padding: 0;
+}
+
+nav ul li {
+    margin: 0 15px;
+}
+
+nav a {
+    color: black;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 10px;
+}
+
+nav a:hover {
+    background-color: #ddd;
+    color: #333;
+    border-radius: 4px;
+}
+
+/* Section nội dung */
+section#content {
+    padding: 20px;
+    margin-top: 20px;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#content ul {
+    list-style-type: none;
+}
+
+#content ul li {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#content ul li:hover {
+    background-color: #f1f1f1;
+}
+
+#content ul li span.tien-do {
+    color: green;
+    font-weight: bold;
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    nav li {
+        margin: 10px 0;
+    }
+}
+
+/* Tìm kiếm */
+.search-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+    gap: 10px;
+}
+
+.search-container input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    width: 300px;
+    transition: border-color 0.3s ease;
+}
+
+.search-container input[type="text"]:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+.search-container button {
+    padding: 10px 20px;
+    background-color: #3b82f6;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.search-container button:hover {
+    background-color: #2563eb;
+}
+
+/* Kết quả tìm kiếm */
+.nguyen-vat-lieu-item {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+.nguyen-vat-lieu-item h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.nguyen-vat-lieu-item p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+/* Form thêm quy trình */
+#add-quy-trinh {
+    width: 80%;
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
+#add-quy-trinh h2 {
+    text-align: center;
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+#add-quy-trinh label {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 8px;
+    display: block;
+}
+
+#add-quy-trinh input[type="text"],
+#add-quy-trinh input[type="number"],
+#add-quy-trinh textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #333;
+    box-sizing: border-box;
+}
+
+#add-quy-trinh textarea {
+    height: 120px;
+    resize: vertical;
+}
+
+#add-quy-trinh button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#add-quy-trinh button:hover {
+    background-color: #0056b3;
+}
+
+#add-quy-trinh form,
+#add-quy-trinh .form-container {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Bảng */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 12px 16px;
+    text-align: left;
+}
+
+thead {
+    background-color: #007bff;
+    color: white;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tbody tr:hover {
+    background-color: #e6f0ff;
+}
+
+button {
+    padding: 6px 12px;
+    background-color: #28a745;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+button.delete-btn {
+    background-color: #dc3545;
+}
+
+button.delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* Phân công form */
+.phan-cong-container {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    width: 90%;
+    max-width: 600px;
+    margin: 40px auto;
+}
+
+.phan-cong-container h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+.phan-cong-container button {
+    width: 100%;
+    padding: 12px;
+    background-color: #28a745;
+    color: white;
+    font-size: 17px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.phan-cong-container button:hover {
+    background-color: #218838;
+}
+
+   .phan-cong-list {
+    width: 90%;
+    max-width: 700px;
+    margin: 30px auto;
+    background-color: #fefefe;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.phan-cong-list h2 {
+    margin-bottom: 15px;
+    color: #34495e;
+}
+
+.phan-cong-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.phan-cong-list li {
+    background-color: #f1f1f1;
+    margin-bottom: 10px;
+    padding: 12px;
+    border-left: 5px solid #3498db;
+    border-radius: 5px;
+    font-size: 15px;
+    color: #2c3e50;
+}
+
+.phan-cong-list button {
+    margin-top: 15px;
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    font-size: 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.phan-cong-list button:hover {
+    background-color: #2980b9;
+}
+        </style>
+<script>
+function phanCong() {
+       const hostname = window.location.hostname;
+    const maNV = document.getElementById('nhanvien').value;
+    const maQT = document.getElementById('quytrinh').value;
+    const vaiTro = document.getElementById('vaitro').value;
+
+    if (!maNV || !maQT) {
+        alert('Vui lòng nhập đầy đủ thông tin');
+        return;
+    }
+
+    fetch(`http://${hostname}:5000/api/production_control/api/phan-cong`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            MaNhanVien: maNV,
+            MaQuyTrinh: maQT,
+            VaiTro: vaiTro
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        document.getElementById('nhanvien').value = '';
+        document.getElementById('quytrinh').value = '';
+    })
+    .catch(err => {
+        console.error('Lỗi phân công:', err);
+        alert('Đã có lỗi xảy ra.');
+    });
+}
+</script>
+
+<script>
+
+function loadPhanCong() {
+    fetch(`http://${hostname}:5000/api/production_control/api/danh-sach-phan-cong`)
+        .then(res => res.json())
+        .then(data => {
+            const ul = document.getElementById('ds-phan-cong');
+            ul.innerHTML = '';
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    ${item.HoTen} → ${item.TenQuyTrinh} (${item.VaiTro})
+                    <button onclick="xoaPhanCong(${item.MaPhanCong})" class="delete-btn" style="margin-left:10px;">❌</button>
+                `;
+                ul.appendChild(li);
+            });
+        });
+}
+
+</script>
+<script>
+    function xoaPhanCong(maPhanCong) {
+    if (!confirm("Bạn có chắc muốn xóa phân công này không?")) return;
+
+    fetch(`http://${hostname}:5000/api/production_control/api/xoa-phan-cong`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ MaPhanCong: maPhanCong })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        loadPhanCong();  // Cập nhật lại danh sách
+    })
+    .catch(err => {
+        console.error('Lỗi khi xóa phân công:', err);
+        alert('Xóa thất bại!');
+    });
+}
+
+</script>
+<script>
+$('#show-quy-trinh').click(function () {
+    fetch(`http://${hostname}:5000/api/production_control/api/quy-trinh-san-xuat`)
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('quy-trinh-list');
+            let tableHTML = `
+                <h2>Danh sách quy trình</h2>
+                <table border="1" width="100%">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Tên</th>
+                            <th>Thời gian</th>
+                            <th>Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach(qt => {
+                // Thoát dấu nháy trong tên quy trình để tránh lỗi JavaScript
+                const safeName = qt.TenQuyTrinh.replace(/'/g, "\\'").replace(/"/g, '\\"');
+
+                tableHTML += `
+                    <tr>
+                        <td>${qt.MaQuyTrinh}</td>
+                        <td>${qt.TenQuyTrinh}</td>
+                        <td>${qt.ThoiGianHoanThanh} ngày</td>
+                        <td>
+                            <button onclick="hienThiBuocQuyTrinh(${qt.MaQuyTrinh}, '${safeName}')">Xem bước</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `</tbody></table>`;
+            container.innerHTML = tableHTML;
+            container.style.display = 'block';
+        });
+});
+</script>
+
+<script>
+function hienThiBuocQuyTrinh(maQuyTrinh, tenQuyTrinh) {
+    fetch(`http://${hostname}:5000/api/production_control/api/buocquytrinh/${maQuyTrinh}`)
+        .then(res => res.json())
+        .then(data => {
+            const danhSach = document.getElementById('ds-buoc');
+            const modalTitle = document.getElementById('modal-title');
+            danhSach.innerHTML = '';
+            modalTitle.textContent = `Các bước của quy trình: ${tenQuyTrinh}`;
+
+            if (data.length === 0) {
+                danhSach.innerHTML = '<li>Không có bước nào cho quy trình này.</li>';
+            } else {
+                data.forEach(buoc => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>Bước ${buoc.ThuTu}:</strong> ${buoc.TenBuoc} - ${buoc.MoTaBuoc}`;
+                    danhSach.appendChild(li);
+                });
+            }
+
+            document.getElementById('modal-buoc-quy-trinh').style.display = 'block';
+        })
+        .catch(err => {
+            console.error('Lỗi khi lấy bước quy trình:', err);
+            alert('Lỗi khi tải dữ liệu!');
+        });
+}
+
+function dongModal() {
+    document.getElementById('modal-buoc-quy-trinh').style.display = 'none';
+}
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const nhanVienBtn = document.getElementById("show-nhan-vien");
+  const quyTrinhBtn = document.getElementById("show-quy-trinh");
+  const sanPhamBtn = document.getElementById("show-san-pham");
+
+  const nhanVienList = document.getElementById("nhan-vien-list");
+  const quyTrinhList = document.getElementById("quy-trinh-list");
+  const sanPhamSection = document.getElementById("san-pham-section");
+
+  // Ẩn tất cả các section
+  function hideAll() {
+    nhanVienList.style.display = "none";
+    document.getElementById("search-nhan-vien").style.display = "none";
+
+    quyTrinhList.style.display = "none";
+    document.getElementById("search-quy-trinh").style.display = "none";
+
+    sanPhamSection.style.display = "none";
+    document.getElementById("search-san-pham").style.display = "none";
+
+    document.getElementById("phan-cong-form").style.display = "none";
+document.getElementById("phan-cong-danh-sach").style.display = "none";
+
+  }
+
+  // Xử lý khi click vào các tab
+  nhanVienBtn.addEventListener("click", () => {
+    hideAll();
+    nhanVienList.style.display = "block";
+       document.getElementById("search-nhan-vien").style.display = "block";
+    document.getElementById("phan-cong-form").style.display = "block";
+    document.getElementById("phan-cong-danh-sach").style.display = "block";
+    loadPhanCong(); // Load lại danh sách phân công
+  });
+
+  quyTrinhBtn.addEventListener("click", () => {
+    hideAll();
+    quyTrinhList.style.display = "block";
+    document.getElementById("search-quy-trinh").style.display = "block";
+  });
+
+  sanPhamBtn.addEventListener("click", () => {
+    hideAll();
+    sanPhamSection.style.display = "block";
+    document.getElementById("search-san-pham").style.display = "block";
+      fetchProducts();
+  });
+
+  // Mặc định hiển thị sản phẩm khi vào trang
+  sanPhamBtn.click();
+});
+</script>
+
+
+    <script>
+    let cart = [];
+    const hostname = window.location.hostname;
+
+    // Lưu cart vào localStorage
+    function saveCartToStorage() {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+
+    // Tải cart từ localStorage nếu có
+    function loadCartFromStorage() {
+        const storedCart = localStorage.getItem('cart');
+        if (storedCart) {
+            cart = JSON.parse(storedCart);
+        }
+    }
+
+    // Gọi API để lấy danh sách sản phẩm
+    function fetchProducts() {
+        fetch(`http://${hostname}:5000/api/production_control/api/san-pham`)
+            .then(res => res.json())
+            .then(products => {
+                const tbody = document.getElementById('product-table-body');
+                tbody.innerHTML = '';
+
+                products.forEach(product => {
+                    let row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${product.MaSanPham}</td>
+                        <td>${product.TenSanPham}</td>
+                        <td>${product.LoaiSanPham}</td>
+                        <td>
+                            <button onclick='addToCart(${JSON.stringify(product)})'>🛒 Thêm</button>
+                        </td>
+                    `;
+
+                    tbody.appendChild(row);
+                });
+            });
+    }
+
+    // Thêm sản phẩm vào giỏ hàng
+    function addToCart(product) {
+        const existingItem = cart.find(item => item.MaSanPham === product.MaSanPham);
+
+        if (existingItem) {
+            existingItem.SoLuong += 1;
+        } else {
+            cart.push({ ...product, SoLuong: 1 });
+        }
+
+        renderCart();
+        saveCartToStorage();
+    }
+
+    // Xóa sản phẩm khỏi giỏ
+    function removeFromCart(maSanPham) {
+        const index = cart.findIndex(item => String(item.MaSanPham) === String(maSanPham));
+
+        if (index !== -1) {
+            if (cart[index].SoLuong > 1) {
+                cart[index].SoLuong -= 1;
+            } else {
+                cart.splice(index, 1);
+            }
+            renderCart();
+            saveCartToStorage();
+        }
+    }
+
+    // Hiển thị giỏ hàng ra giao diện popup
+    function renderCart() {
+        const cartBody = document.getElementById('cart-table-body');
+        const cartCount = document.getElementById('cart-count');
+        cartBody.innerHTML = '';
+
+        let totalCount = 0;
+
+        cart.forEach(item => {
+            let row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="padding: 4px;">${item.TenSanPham}</td>
+                <td style="padding: 4px;">${item.LoaiSanPham}</td>
+                <td style="padding: 4px;">${item.SoLuong}</td>
+                <td style="padding: 4px;"><button onclick='removeFromCart("${item.MaSanPham}")'>❌</button></td>
+            `;
+            cartBody.appendChild(row);
+            totalCount += item.SoLuong;
+        });
+
+        cartCount.innerText = totalCount;
+    }
+
+    // Bật/tắt popup giỏ hàng
+    function toggleCart() {
+        const popup = document.getElementById('cart-popup');
+        popup.style.display = (popup.style.display === 'none' || popup.style.display === '') ? 'block' : 'none';
+    }
+
+    // Khi trang load: tải sản phẩm và khôi phục giỏ hàng
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchProducts();
+        loadCartFromStorage();
+        renderCart();
+    });
+    </script>
+
+
+
+
+        <section id="content">
+            <!-- Dữ liệu sẽ được hiển thị ở đây -->
+        </section>
+        <div id="add-quy-trinh">
+        <h2>Thêm Quy trình sản xuất mới</h2>
+        <form id="add-quy-trinh-form">
+            <label for="name">Tên Quy trình:</label>
+            <input type="text" id="name" required><br>
+            <label for="description">Mô tả:</label>
+            <textarea id="description" required></textarea><br>
+            <label for="completion_time">Thời gian hoàn thành (ngày):</label>
+            <input type="number" id="completion_time" required><br>
+            <button type="submit">Thêm Quy trình</button>
+        </form>
+    </div>
+
+
+
+        <script>
+            $(document).ready(function () {
+
+                // Hàm tải dữ liệu Nhân viên
+                $('#show-nhan-vien').click(function () {
+                    $.get(`http://${hostname}:5000/api/production_control/api/nhan-vien`, function (data) {
+                        let content = '<h2>Danh sách Nhân viên</h2><ul>';
+                        data.forEach(function (item) {
+                            content += `<li>${item.Ho} ${item.Ten} - ${item.ChucVu} - Mức lương: ${item.MucLuong}</li>`;
+                        });
+                        content += '</ul>';
+                        $('#content').html(content);
+                    });
+                });
+
+                // Hàm tải dữ liệu Quy trình sản xuất
+
+
+
+
+                // Hàm tải dữ liệu Sản phẩm
+                $('#show-san-pham').click(function () {
+                    $.get(`http://${hostname}:5000/api/production_control/api/san-pham`, function (data) {
+                        let content = '<h2>Danh sách Sản phẩm</h2><ul>';
+                        data.forEach(function (item) {
+                            content += `<li>${item.TenSanPham} - Loại: ${item.LoaiSanPham} - Sản xuất: ${item.SoLuongSanXuat}</li>`;
+                        });
+                        content += '</ul>';
+                        $('#content').html(content);
+                    });
+                });
+            });
+        </script>
+
+    <script>
+        function searchNhanVien() {
+      const searchTerm = document.getElementById('search-input-nhan-vien').value;
+
+      // Ẩn danh sách tất cả nhân viên khi bắt đầu tìm kiếm
+      document.getElementById('nhan-vien-list').style.display = 'none';
+
+      // Kiểm tra nếu từ khóa tìm kiếm không trống
+      if (searchTerm.trim() !== '') {
+        fetch(`http://${hostname}:5000/api/production_control/api/nhan-vien?search=${searchTerm}`)
+          .then(response => response.json())
+          .then(data => {
+            displayNhanVien(data); // Hiển thị kết quả tìm kiếm
+            document.getElementById('search-results').style.display = 'block'; // Hiển thị kết quả tìm kiếm
+          })
+          .catch(error => console.error('Error:', error));
+      } else {
+        // Nếu không có từ khóa tìm kiếm, không hiển thị gì
+        document.getElementById('search-results').innerHTML = '';
+        document.getElementById('search-results').style.display = 'none'; // Ẩn kết quả tìm kiếm
+      }
+    }
+
+    function displayNhanVien(nhanVienList) {
+      const nhanVienListDiv = document.getElementById('search-results');
+      nhanVienListDiv.innerHTML = '';  // Xóa danh sách hiện tại trước khi thêm mới
+
+      // Hiển thị các nhân viên tìm thấy
+      nhanVienList.forEach(nhanVien => {
+        const nhanVienDiv = document.createElement('div');
+        nhanVienDiv.classList.add('nhan-vien-card');
+
+        nhanVienDiv.innerHTML = `
+          <h3>${nhanVien.Ho} ${nhanVien.Ten}</h3>
+          <p><strong>Chức vụ:</strong> ${nhanVien.ChucVu}</p>
+          <p><strong>Mức lương:</strong> ${nhanVien.MucLuong}</p>
+          <p><strong>Ngày tuyển dụng:</strong> ${nhanVien.NgayTuyendung}</p>
+        `;
+
+        nhanVienListDiv.appendChild(nhanVienDiv);
+      });
+    }
+
+    </script>
+
+    <script>
+    $(document).ready(function () {
+
+        // Khi nhấn vào "Nhân viên"
+        $('#show-nhan-vien').click(function () {
+            $('#search-nguyen-vat-lieu').hide();
+            $('#search-nhan-vien').show();
+            $('#search-quy-trinh').hide();
+            $('#search-san-pham').hide();  // Ẩn thanh tìm kiếm Sản phẩm
+             $('#add-quy-trinh').hide();
+        });
+
+        // Khi nhấn vào "Quy trình sản xuất"
+        $('#show-quy-trinh').click(function () {
+            $('#search-nguyen-vat-lieu').hide();
+            $('#search-nhan-vien').hide();
+            $('#search-quy-trinh').show();
+            $('#search-san-pham').hide();  // Ẩn thanh tìm kiếm Sản phẩm
+            $('#add-quy-trinh').show();
+            sanPhamSection.style.display = "none"; // 👈 BẮT BUỘC CÓ!
+
+        });
+
+        // Khi nhấn vào "Sản phẩm"
+        $('#show-san-pham').click(function () {
+            $('#search-nguyen-vat-lieu').hide();
+            $('#search-nhan-vien').hide();
+            $('#search-quy-trinh').hide();
+            $('#search-san-pham').show();  // Hiển thị thanh tìm kiếm Sản phẩm
+             $('#add-quy-trinh').hide();
+        });
+    });
+
+    </script>
+    <script>
+        // Hàm tìm kiếm quy trình sản xuất
+       function searchQuyTrinh() {
+        var query = document.getElementById('search-input-Quy-Trinh').value;
+        var resultsDiv = document.getElementById('search-results-quy-trinh');
+
+        if (query.length > 0) {
+            fetch(`http://${hostname}:5000/api/production_control/api/search-quy-trinh?query=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsDiv.innerHTML = ""; // Xóa kết quả cũ
+
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            var result = document.createElement('div');
+                            result.innerHTML = `<strong>${item.TenQuyTrinh}</strong><br>${item.MoTa}<br>Thời gian hoàn thành: ${item.ThoiGianHoanThanh} giờ<br><br>`;
+                            resultsDiv.appendChild(result);
+                        });
+                    } else {
+                        resultsDiv.innerHTML = "Không tìm thấy quy trình nào.";
+                    }
+
+                    resultsDiv.style.display = 'block'; // Luôn hiển thị nếu có kết quả
+                });
+        } else {
+            // 🧹 Khi input trống thì ẩn và xóa kết quả
+            resultsDiv.innerHTML = "";
+            resultsDiv.style.display = 'none';
+        }
+    }
+
+    </script>
+
+    <script>
+        // Thêm quy trình sản xuất mới
+    document.getElementById('add-quy-trinh-form').addEventListener('submit', function(event) {
+      event.preventDefault();  // Ngừng hành động mặc định của form
+
+      const name = document.getElementById('name').value;
+      const description = document.getElementById('description').value;
+      const completion_time = document.getElementById('completion_time').value;
+
+      fetch(`http://${hostname}:5000/api/production_control/api/quytrinh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: name,
+          description: description,
+          completion_time: completion_time
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message);  // Thông báo thành công
+        // Sau khi thêm, bạn có thể cập nhật lại danh sách quy trình
+        searchQuyTrinh();  // Gọi lại hàm tìm kiếm để cập nhật danh sách
+      })
+      .catch(error => console.error('Error:', error));
+    });
+
+    </script>
+
+    <script>
+        function searchSanPham() {
+            const query = document.getElementById("search-input-san-pham").value;
+
+            if (query.length > 0) {
+                // Gửi yêu cầu GET đến API tìm kiếm
+                fetch(`http://${hostname}:5000/api/production_control/api/api/search?query=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const resultContainer = document.getElementById("san-pham-list");
+                        resultContainer.innerHTML = "";  // Xóa kết quả cũ
+
+                        if (data.length === 0) {
+                            resultContainer.innerHTML = "<p>Không tìm thấy sản phẩm nào.</p>";
+                        } else {
+                            // Hiển thị kết quả tìm kiếm
+                            data.forEach(sp => {
+                                const div = document.createElement("div");
+                                div.textContent = `${sp.MaSanPham} - ${sp.TenSanPham} (${sp.LoaiSanPham})`;
+                                resultContainer.appendChild(div);
+                            });
+                        }
+                    });
+            } else {
+                // Nếu không có từ khóa tìm kiếm, xóa kết quả
+                document.getElementById("san-pham-list").innerHTML = "";
+            }
+        }
+    </script>
+
+
+    </div>
+    </body>
+    </html>

@@ -1,4 +1,102 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/frontend/css/navbar.css">
+    <link rel="stylesheet" href="./css/styleOrder.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <title>Place an Order</title>
+</head>
+<body>
+    
+    <div class="nav">
+        <h2 style="padding-bottom: 20px; color: #f2f0de;">Xin chào, username!</h2>
+        <!-- Thêm username từ backend vào đây -->
+        <nav class="container">
+            <div class="navh1" onclick="window.location.href='./main.html'">
+                <h1>Báo cáo</h1>
+            </div>
+            <div class="navh1" onclick="window.location.href='./employees.html'">
+                <h1>Nhân viên</h1>
+            </div>
+            <div class="navh1" onclick="window.location.href='./projects.html'">
+                <h1>Dự án</h1>
+            </div>
+            <div class="navh1" onclick="window.location.href='./order.html'">
+                <h1>Đặt hàng</h1>
+            </div>
+            <div class="navh1" onclick="window.location.href='./invoices.html'">
+                <h1>Hoá đơn</h1>
+            </div>
+            <div class="navh1" onclick="window.location.href='./quality.html'">
+                <h1>Chất lượng</h1>
+            </div>
+            <div class="navh1">
+                <h1>Nút chờ 4</h1>
+            </div>
+            <div class="logout">
+                <button onclick="logout()" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <h1>Đăng xuất</h1>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Div content chứa thông tin đặt hàng -->
+
+    <div class="content2" style="margin-left: 400px;">
+        <h1 class="content2">New Order</h1>
+        <!-- <form id="orderForm" onsubmit="submitOrder(event)"></form> -->
+            <label for="customerName">Customer Name:</label>
+            <input type="text" id="customerName" name="customerName" style="width: 500px;" required><br><br>
+
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" min="1" style="width: 500px;" required><br><br>
+
+            <label for="meatType">Type of Meat:</label>
+            <select id="meatType" name="meatType" class="inputs" required>
+            <option value="chicken">Chicken</option>
+            <option value="beef">Beef</option>
+            <option value="pork">Pork</option>
+            </select><br><br>
+
+            <label for="length">Length of Each Sausage (cm):</label>
+            <input type="range" id="length" name="length" min="1" max="20" class="inputs" required oninput="document.getElementById('lengthValue').innerText = this.value">
+            <span id="lengthValue">10</span> cm<br><br>
+
+            <label for="destination">Shipping Destination:</label>
+            <select id="destination" name="destination" class="inputs" required>
+            <option value="hanoi">Hanoi</option>
+            <option value="danang">Da Nang</option>
+            <option value="hcmc">Ho Chi Minh City</option>
+            <option value="export">Export</option>
+            </select><br><br>
+            <label for="deadline">Delivery date:</label>
+            <input type="date" id="deadline" name="deadline" class="inputs" required><br><br>
+
+            <label for="specialNotes">Special Notes:</label>
+            <textarea id="specialNotes" name="specialNotes" rows="4" cols="50"></textarea><br><br>
+
+            <button type="submit" style="font-size: 18pt;" onclick="placeorder()">Place Order</button>
+            <br>
+            <br>
+            <div id="feedback" style="color: green; font-size: 16pt;"></div>
+        </form>
+
+        <!-- <button class="btn" onclick="fetchProduction()">📋 Xem tiến độ</button> -->
+    </div>
+    
+    <script src="./orderpage.js"></script>
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -13,6 +111,6 @@
         <ul id="production-list" class="list"></ul>
         <a href="index.html" class="back">⬅ Về trang chủ</a>
     </div>
-    <script src="js/main.js"></script>
+    <script src="./js/orderpage.js"></script>
 </body>
-</html>
+</html> -->

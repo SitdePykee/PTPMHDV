@@ -50,24 +50,39 @@ function fetchStockTransactions() {
         .catch(error => console.error("❌ Lỗi khi lấy dữ liệu giao dịch kho:", error));
 }
 
-function addStockTransaction() {
-    let material_id = document.getElementById("transaction_material_id").value;
-    let type = document.getElementById("transaction_type").value;
-    let quantity = document.getElementById("transaction_quantity").value;
-    let date = document.getElementById("transaction_date").value;
-
-    fetch("http://" + hostname + ":5000/api/material_management/stock_transaction", {
-        method: "POST",
+const addStockTransaction = () => {
+    const materialId = document.getElementById("transaction_material_id").value;
+    const transactionType = document.getElementById("transaction_type").value;
+    const quantity = document.getElementById("transaction_quantity").value;
+    const date = document.getElementById("transaction_date").value;
+    let apiUrl = "http://" + hostname + ":5000/api/material_management/stock_transaction";
+    fetch(apiUrl, {
+        method: 'POST',
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ material_id, type, quantity, date })
+        body: JSON.stringify({
+            material_id: materialId,
+            type: transactionType,
+            quantity: quantity,
+            date: date
+        })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Lỗi từ server: ${response.statusText}`);
+        }
+        return response.json();  // Dữ liệu phải là JSON
+    })
     .then(data => {
-        alert(data.message);
-        fetchStockTransactions();
+        alert('Giao dịch kho đã được ghi nhận');
+        console.log(data);  // Xử lý kết quả
     })
-    .catch(error => console.error("❌ Lỗi khi thêm giao dịch kho:", error));
-}
+    .catch(error => {
+        console.error('Lỗi:', error);
+        alert(`Có lỗi xảy ra: ${error.message}`);
+    });
+};
+
+
 
 function readExcelData() {
     let filePath = document.getElementById("excel_path").value;
@@ -177,5 +192,27 @@ function saveExcelData() {
     .catch(error => {
         console.error("❌ Lỗi khi cập nhật dữ liệu:", error);
         alert("❌ Lỗi khi cập nhật dữ liệu! Kiểm tra console để biết thêm chi tiết.");
+    });
+}
+
+function fetchStockTransactions() {
+    let apiUrl = "http://" + hostname + ":5000/api/material_management/stock_transaction";
+
+    fetch(apiUrl, {
+        method: 'GET',
+    })
+    .then(response => response.json())
+    .then(data => {
+        const stockList = document.getElementById('stock-list');
+        stockList.innerHTML = '';  // Clear the list before rendering
+
+        data.forEach(transaction => {
+            const li = document.createElement('li');
+            li.textContent = `Nguyên vật liệu ID: ${transaction.material_id}, Loại: ${transaction.type}, Số lượng: ${transaction.quantity}, Ngày: ${transaction.date}`;
+            stockList.appendChild(li);
+        });
+    })
+    .catch(error => {
+        alert("Lỗi: " + error);
     });
 }

@@ -1,18 +1,400 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý chất lượng</title>
-    <link rel="stylesheet" href="css/style.css">
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Quản lý chất lượng</title>
+   <link rel="stylesheet" href="css/style.css">
+   <style>
+       body {
+           font-family: Arial, sans-serif;
+           background-color: #f4f4f9;
+           margin: 0;
+           padding: 0;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           min-height: 100vh;
+       }
+
+
+       .container {
+           width: 90%;
+           max-width: 800px;
+           background: #fff;
+           padding: 20px;
+           border-radius: 10px;
+           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+       }
+
+
+       h2 {
+           text-align: center;
+           color: #333;
+           margin-bottom: 15px;
+       }
+
+
+       .input-box {
+           width: 100%;
+           padding: 10px;
+           margin: 10px 0;
+           border: 1px solid #ccc;
+           border-radius: 5px;
+           box-sizing: border-box;
+       }
+
+
+       button.btn {
+           display: inline-block;
+           padding: 12px 20px;
+           background: #007bff;
+           color: #fff;
+           border: none;
+           border-radius: 5px;
+           cursor: pointer;
+           font-size: 16px;
+           margin: 10px 0;
+           transition: background 0.3s, transform 0.2s;
+       }
+
+
+       button.btn:hover {
+           background: #0056b3;
+           transform: scale(1.05);
+       }
+
+
+       button.view-defects {
+           padding: 8px 12px;
+           background: #28a745;
+           font-size: 14px;
+       }
+
+
+       button.view-defects:hover {
+           background: #218838;
+       }
+
+
+       button.back-btn {
+           background: #6c757d;
+       }
+
+
+       button.back-btn:hover {
+           background: #5a6268;
+       }
+
+
+       .search-container {
+           display: flex;
+           gap: 10px;
+           align-items: center;
+           margin-bottom: 20px;
+       }
+
+
+       .search-container .input-box {
+           flex: 2;
+           min-width: 200px;
+       }
+
+
+       .search-container .btn {
+           flex: 1;
+           min-width: 100px;
+       }
+
+
+       .back {
+           display: block;
+           text-align: center;
+           margin-top: 20px;
+           color: #007bff;
+           text-decoration: none;
+           font-size: 16px;
+       }
+
+
+       .back:hover {
+           text-decoration: underline;
+       }
+
+
+       table {
+           width: 100%;
+           border-collapse: collapse;
+           margin-top: 20px;
+       }
+
+
+       table th, table td {
+           padding: 10px;
+           border: 1px solid #ddd;
+           text-align: left;
+       }
+
+
+       table th {
+           background-color: #007bff;
+           color: white;
+       }
+
+
+       table tr:nth-child(even) {
+           background-color: #f9f9f9;
+       }
+
+
+       table tr:hover {
+           background-color: #f1f1f1;
+       }
+
+
+       .no-data {
+           text-align: center;
+           color: #666;
+           font-style: italic;
+       }
+
+
+       .hidden {
+           display: none;
+       }
+   </style>
 </head>
 <body>
-    <div class="container">
-        <h1>✅ Quản lý chất lượng</h1>
-        <button class="btn" onclick="fetchQuality()">📋 Xem kiểm tra</button>
-        <ul id="quality-list" class="list"></ul>
-        <a href="index.html" class="back">⬅ Về trang chủ</a>
-    </div>
-    <script src="js/main.js"></script>
+   <div class="container">
+       <h2 id="table-title">Danh sách kiểm tra chất lượng</h2>
+
+
+       <!-- Khung tìm kiếm -->
+       <div class="search-container" id="search-container">
+           <input type="number" id="quality-check-id" class="input-box" placeholder="Nhập ID kiểm tra chất lượng" min="1">
+           <button class="btn" onclick="searchQualityCheck()">🔍 Tìm kiếm</button>
+       </div>
+
+
+       <!-- Bảng Quality Check -->
+       <table id="quality-table">
+           <thead>
+               <tr>
+                   <th>ID</th>
+                   <th>ID Sản phẩm</th>
+                   <th>Trạng thái</th>
+                   <th>Lỗi</th>
+                   <th>Hành động</th>
+               </tr>
+           </thead>
+           <tbody id="quality-table-body"></tbody>
+       </table>
+
+
+       <!-- Bảng Defect Report -->
+       <table id="defect-table" class="hidden">
+           <thead>
+               <tr>
+                   <th>ID</th>
+                   <th>ID Kiểm tra</th>
+                   <th>Loại lỗi</th>
+                   <th>Mô tả</th>
+                   <th>URL Ảnh</th>
+               </tr>
+           </thead>
+           <tbody id="defect-table-body"></tbody>
+       </table>
+
+
+       <a href="index.html" class="back" id="home-link">⬅ Về trang chủ</a>
+   </div>
+
+
+   <script>
+       const hostname = window.location.hostname;
+
+
+       // Hàm lấy tất cả quality checks
+       async function fetchQualityChecks() {
+           try {
+               const response = await fetch(`http://${hostname}:5000/api/quality_management/quality_checks`, {
+                   method: 'GET'
+               });
+
+
+               const data = await response.json();
+               console.log("✅ Dữ liệu quality_check nhận được:", data);
+
+
+               const tableBody = document.getElementById('quality-table-body');
+               tableBody.innerHTML = '';
+
+
+               if (data.length === 0) {
+                   const row = document.createElement('tr');
+                   row.innerHTML = `<td colspan="5" class="no-data">Dữ liệu quality_check sẽ hiện ở đây</td>`;
+                   tableBody.appendChild(row);
+               } else {
+                   data.forEach(check => {
+                       const row = document.createElement('tr');
+                       const showDefectButton = check.status === 'fail'
+                           ? `<button class="btn view-defects" onclick="fetchDefectReport(${check.id})">Xem báo cáo lỗi</button>`
+                           : ''; // Nếu status là 'pass', không hiển thị nút
+                       row.innerHTML = `
+                           <td>${check.id}</td>
+                           <td>${check.product_id}</td>
+                           <td>${check.status}</td>
+                           <td>${Array.isArray(check.defects) ? check.defects.join(', ') : (check.defects || 'Không có')}</td>
+                           <td>${showDefectButton}</td>
+                       `;
+                       tableBody.appendChild(row);
+                   });
+               }
+           } catch (error) {
+               console.error('❌ Lỗi khi lấy danh sách kiểm tra:', error);
+               alert('Đã xảy ra lỗi khi lấy danh sách kiểm tra.');
+           }
+       }
+
+
+       // Hàm tìm kiếm quality check theo ID
+       async function searchQualityCheck() {
+           const id = document.getElementById('quality-check-id').value;
+           if (!id) {
+               alert('Vui lòng nhập ID kiểm tra chất lượng.');
+               return;
+           }
+
+
+           try {
+               const response = await fetch(`http://${hostname}:5000/api/quality_management/quality_check/${id}`, {
+                   method: 'GET'
+               });
+
+
+               if (!response.ok) {
+                   throw new Error('Không tìm thấy bản ghi với ID này.');
+               }
+
+
+               const check = await response.json();
+               console.log("✅ Bản ghi quality_check tìm được:", check);
+
+
+               const tableBody = document.getElementById('quality-table-body');
+               tableBody.innerHTML = '';
+
+
+               const showDefectButton = check.status === 'fail'
+                   ? `<button class="btn view-defects" onclick="fetchDefectReport(${id})">Xem báo cáo lỗi</button>`
+                   : ''; // Nếu status là 'pass', không hiển thị nút
+               const row = document.createElement('tr');
+               row.innerHTML = `
+                   <td>${id}</td>
+                   <td>${check.product_id}</td>
+                   <td>${check.status}</td>
+                   <td>${Array.isArray(check.defects) ? check.defects.join(', ') : (check.defects || 'Không có')}</td>
+                   <td>${showDefectButton}</td>
+               `;
+               tableBody.appendChild(row);
+           } catch (error) {
+               console.error('❌ Lỗi khi tìm kiếm kiểm tra:', error);
+               const tableBody = document.getElementById('quality-table-body');
+               tableBody.innerHTML = '';
+               const row = document.createElement('tr');
+               row.innerHTML = `<td colspan="5" class="no-data">Dữ liệu quality_check sẽ hiện ở đây</td>`;
+               tableBody.appendChild(row);
+           }
+       }
+
+
+       // Hàm lấy defect report theo check_id
+       async function fetchDefectReport(checkId) {
+           try {
+               const response = await fetch(`http://${hostname}:5000/api/quality_management/defect_report/check/${checkId}`, {
+                   method: 'GET'
+               });
+
+
+               if (!response.ok) {
+                   throw new Error('Không tìm thấy báo cáo lỗi với check_id này.');
+               }
+
+
+               const result = await response.json();
+                const reports = [result]; 
+               console.log("✅ Danh sách defect_report nhận được:", reports);
+
+
+               document.getElementById('quality-table').classList.add('hidden');
+               document.getElementById('defect-table').classList.remove('hidden');
+               document.getElementById('search-container').classList.add('hidden');
+               document.getElementById('table-title').textContent = 'Báo cáo lỗi';
+               document.getElementById('home-link').classList.add('hidden');
+
+
+               const tableBody = document.getElementById('defect-table-body');
+               tableBody.innerHTML = '';
+
+
+               if (reports.length === 0) {
+                   const row = document.createElement('tr');
+                   row.innerHTML = `<td colspan="5" class="no-data">Dữ liệu defect_report sẽ hiện ở đây</td>`;
+                   tableBody.appendChild(row);
+               } else {
+                   reports.forEach(report => {
+                       const row = document.createElement('tr');
+                       row.innerHTML = `
+                           <td>${report.id || 'N/A'}</td>
+                           <td>${report.check_id}</td>
+                           <td>${report.defect_type}</td>
+                           <td>${report.description || 'Không có'}</td>
+                           <td>${report.image_url ? `<a href="${report.image_url}" target="_blank">Xem ảnh</a>` : 'Không có'}</td>
+                       `;
+                       tableBody.appendChild(row);
+                   });
+               }
+
+
+               const backRow = document.createElement('tr');
+               backRow.innerHTML = `<td colspan="5"><button class="btn back-btn" onclick="showQualityTable()">Quay lại danh sách kiểm tra</button></td>`;
+               tableBody.appendChild(backRow);
+           } catch (error) {
+               console.error('❌ Lỗi khi lấy báo cáo lỗi:', error);
+               const tableBody = document.getElementById('defect-table-body');
+               tableBody.innerHTML = '';
+               const row = document.createElement('tr');
+               row.innerHTML = `<td colspan="5" class="no-data">Dữ liệu defect_report sẽ hiện ở đây</td>`;
+               tableBody.appendChild(row);
+
+
+               const backRow = document.createElement('tr');
+               backRow.innerHTML = `<td colspan="5"><button class="btn back-btn" onclick="showQualityTable()">Quay lại danh sách kiểm tra</button></td>`;
+               tableBody.appendChild(backRow);
+
+
+               document.getElementById('quality-table').classList.add('hidden');
+               document.getElementById('defect-table').classList.remove('hidden');
+               document.getElementById('search-container').classList.add('hidden');
+               document.getElementById('table-title').textContent = 'Báo cáo lỗi';
+               document.getElementById('home-link').classList.add('hidden');
+           }
+       }
+
+
+       // Hàm quay lại bảng quality_check
+       function showQualityTable() {
+           document.getElementById('defect-table').classList.add('hidden');
+           document.getElementById('quality-table').classList.remove('hidden');
+           document.getElementById('search-container').classList.remove('hidden');
+           document.getElementById('table-title').textContent = 'Danh sách kiểm tra chất lượng';
+           document.getElementById('home-link').classList.remove('hidden');
+           fetchQualityChecks(); // Tải lại danh sách quality_check
+       }
+
+
+       // Gọi hàm lấy quality checks khi trang tải
+       document.addEventListener('DOMContentLoaded', fetchQualityChecks);
+   </script>
 </body>
 </html>
